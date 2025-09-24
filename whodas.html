@@ -1,0 +1,1007 @@
+<!--This is a web-version of the WHODAS 2.0 questionnaire, a 36-item self-administered questionnaire assessing disability and functioning across six domains: understanding and communicating, mobility, self-care, getting along with others, life activities (household, work, or school), and participation in society.-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WHODAS 2.0 Questionnaire</title>
+    <style>
+        body {
+            font-family: "OpenDyslexic", Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: #f0f8ff;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 26px;
+        }
+        h2 {
+            font-size: 22px;
+            color: #34495e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .page {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .question {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 18px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .question-id {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        .response-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background-color: #34495e;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2c3e50;
+        }
+        .btn-response {
+            background-color: #ecf0f1;
+            color: #34495e;
+            border: 2px solid #bdc3c7;
+        }
+        .btn-response:hover {
+            background-color: #d5dbdb;
+        }
+        .btn-response.selected {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            align-items: center;
+        }
+        .nav-btn {
+            background-color: #95a5a6;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            min-width: 100px;
+        }
+        .nav-btn:hover:not(:disabled) {
+            background-color: #7f8c8d;
+        }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .nav-btn.next {
+            background-color: #3498db;
+        }
+        .nav-btn.next:hover:not(:disabled) {
+            background-color: #2980b9;
+        }
+        .progress-section {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #bdc3c7;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        .progress-text {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .conditional-section {
+            background: #fff3cd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .conditional-note {
+            font-style: italic;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        .checkbox-container {
+            margin: 10px 0;
+        }
+        .checkbox-container label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+        .time-estimate {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .instructions {
+            background: #e8f4fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .domain-header {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 20px -20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .domain-number {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        .results {
+            background: #d4edda;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 20px;
+            border-left: 4px solid #28a745;
+        }
+        .results h3 {
+            margin-bottom: 20px;
+            color: #155724;
+            font-size: 22px;
+        }
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .score-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+        }
+        .score-label {
+            font-weight: 600;
+            color: #155724;
+            margin-bottom: 5px;
+        }
+        .score-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        #abortButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000; 
+            padding: 10px 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #abortButton:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <button id="abortButton" onclick="abortStudy()">Abort Study</button>
+    <h1>WHODAS 2.0</h1>
+    <p style="text-align: center; color: #7f8c8d; margin-bottom: 20px;">World Health Organization Disability Assessment Schedule 2.0 - 36-item version</p>
+
+    <!-- Introduction Page -->
+    <div id="page0" class="page active">
+        <div class="instructions">
+            <h3>Instructions</h3>
+            <p>This questionnaire asks about difficulties due to health/mental health conditions. Health conditions include diseases or illnesses, other health problems that may be short or long lasting, injuries, mental or emotional problems, and problems with alcohol or drugs.</p>
+            <p><strong>Think back over the past 30 days</strong> and answer these questions thinking about how much difficulty you had doing the following activities.</p>
+            <p>For each question, please select only one response from:</p>
+            <ul>
+                <li><strong>None</strong> - No difficulty</li>
+                <li><strong>Mild</strong> - Slight difficulty</li>
+                <li><strong>Moderate</strong> - Moderate difficulty</li>
+                <li><strong>Severe</strong> - Severe difficulty</li>
+                <li><strong>Extreme or cannot do</strong> - Extreme difficulty or cannot do at all</li>
+            </ul>
+            <p style="font-size: 18px; font-weight: bold; color: #e74c3c; margin-bottom: 15px; text-align: center;">Please answer honestly; our research depends on you!</p>
+            <p class="time-estimate">This questionnaire should take approximately 3-5 minutes.</p>
+        </div>
+        <div class="navigation">
+            <div></div>
+            <button class="btn btn-primary" onclick="startQuestionnaire()">Start Questionnaire</button>
+        </div>
+    </div>
+
+    <!-- Progress indicator for domain pages -->
+    <div id="progress-section" class="progress-section" style="display: none;">
+        <div class="progress-text">
+            <span id="progress-current">Domain 1 of 7</span>
+            <span id="progress-domain-name">Understanding and communicating</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+
+    <!-- Domain pages -->
+    <div id="questionnaire-container"></div>
+
+     
+
+    <script src="jatos.js"></script>
+    <script src="prolificLinks.js"></script>
+    <script src="inactivity.js"></script>
+    <script>
+        let participantId = null;
+        let startTime;
+        let currentPage = 0;
+        let responses = {};
+        let workSchoolApplicable = false;
+        let attentionFails = 0;
+
+        function initializeJatos() {
+            return new Promise((resolve, reject) => {
+                if (typeof jatos === 'undefined') {
+                    reject(new Error('JATOS not loaded'));
+                    return;
+                }
+
+                jatos.onLoad(() => {
+                    participantId = jatos.studySessionData?.participantId || 'test';
+                    resolve();
+                });
+            });
+        }
+        // Define domains and questions
+        const domains = [
+            {
+                name: "Understanding and communicating",
+                questions: [
+                    { id: "d1_1", text: "Concentrating on doing something for ten minutes?" },
+                    { id: "d1_2", text: "Remembering to do important things?" },
+                    { id: "d1_3", text: "Analyzing and finding solutions to problems in day-to-day life?" },
+                    { id: "d1_4", text: "Learning a new task, for example, learning how to get to a new place?" },
+                    { id: "d1_5", text: "Generally understanding what people say?" },
+                    { id: "d1_6", text: "Starting and maintaining a conversation?" }
+                ]
+            },
+            {
+                name: "Getting around",
+                questions: [
+                    { id: "d2_1", text: "Standing for long periods, such as 30 minutes?" },
+                    { id: "d2_2", text: "Standing up from sitting down?" },
+                    { id: "d2_3", text: "Moving around inside your home?" },
+                    { id: "d2_4", text: "Getting out of your home?" },
+                    { id: "d2_5", text: "Walking a long distance, such as a kilometer (or equivalent)?" }
+                ]
+            },
+            {
+                name: "Self-care",
+                questions: [
+                    { id: "d3_1", text: "Washing your whole body?" },
+                    { id: "d3_2", text: "Getting dressed?" },
+                    { id: "d3_3", text: "Eating?" },
+                    { id: "d3_4", text: "Staying by yourself for a few days?" }
+                ]
+            },
+            {
+                name: "Getting along with people",
+                questions: [
+                    { id: "d4_1", text: "Dealing with people you do not know?" },
+                    { id: "d4_2", text: "Maintaining a friendship?" },
+                    { id: "d4_3", text: "Getting along with people who are close to you?" },
+                    { id: "d4_4", text: "Making new friends?" },
+                    { id: "d4_5", text: "Sexual activities?" }
+                ]
+            },
+            {
+                name: "Life activities—Household",
+                questions: [
+                    { id: "d5_1", text: "Taking care of your household responsibilities?" },
+                    { id: "d5_2", text: "Doing most important household tasks well?" },
+                    { id: "d5_3", text: "Getting all of the household work done that you needed to do?" },
+                    { id: "d5_4", text: "Getting your household work done as quickly as needed?" }
+                ]
+            },
+            {
+                name: "Life activities—School/Work",
+                questions: [
+                    { id: "d5_5", text: "Your day-to-day work/school?" },
+                    { id: "d5_6", text: "Doing your most important work/school tasks well?" },
+                    { id: "d5_7", text: "Getting all of the work done that you need to do?" },
+                    { id: "d5_8", text: "Getting your work done as quickly as needed?" }
+                ],
+                conditional: true
+            },
+            {
+                name: "Participation in society",
+                questions: [
+                    { id: "d6_1", text: "How much of a problem did you have in joining in community activities (for example, festivities, religious, or other activities) in the same way as anyone else can?" },
+                    { id: "d6_2", text: "How much of a problem did you have because of barriers or hindrances around you?" },
+                    { id: "d6_3", text: "How much of a problem did you have living with dignity because of the attitudes and actions of others?" },
+                    { id: "d6_4", text: "How much time did you spend on your health condition or its consequences?" },
+                    { id: "d6_5", text: "How much have you been emotionally affected by your health condition?" },
+                    { id: "d6_6", text: "How much has your health been a drain on the financial resources of you or your family?" },
+                    { id: "d6_7", text: "How much of a problem did your family have because of your health problems?" },
+                    { id: "d6_8", text: "How much of a problem did you have in doing things by yourself for relaxation or pleasure?" }
+                ],
+                specialText: "In the past 30 days:"
+            }
+        ];
+        
+        // Randomly select 2 different domains to add attention checks (excluding work/school)
+        const eligibleDomains = [0, 1, 2, 3, 5]; 
+        const selectedDomains = [];
+        while (selectedDomains.length < 2) {
+            const randomDomain = eligibleDomains[Math.floor(Math.random() * eligibleDomains.length)];
+            if (!selectedDomains.includes(randomDomain)) {
+                selectedDomains.push(randomDomain);
+            }
+        }
+        const attentionChecks = [
+            { text: "This is an attention check. Please select 'Moderate'.", expectedAnswer: 3 },
+            { text: "This is an attention check. Please select 'Severe'.", expectedAnswer: 4 }
+        ];
+        
+        selectedDomains.forEach((domainIndex, checkIndex) => {
+            const randomPos = Math.floor(Math.random() * domains[domainIndex].questions.length);
+            let domainNumber = domainIndex + 1; 
+            if (domainIndex === 5) domainNumber = 6;
+            domains[domainIndex].questions.splice(randomPos, 0, {
+                id: `d${domainNumber}_attention`,
+                text: attentionChecks[checkIndex].text,
+                isAttentionCheck: true,
+                expectedAnswer: attentionChecks[checkIndex].expectedAnswer
+            });
+        });
+
+        const responseOptions = [
+            { value: 1, text: "None" },
+            { value: 2, text: "Mild" },
+            { value: 3, text: "Moderate" },
+            { value: 4, text: "Severe" },
+            { value: 5, text: "Extreme or cannot do" }
+        ];
+
+        const d6_4_options = [
+            { value: 1, text: "None" },
+            { value: 2, text: "Some" },
+            { value: 3, text: "Moderate" },
+            { value: 4, text: "A Lot" },
+            { value: 5, text: "Extreme or cannot do" }
+        ];
+
+        function createDomainPages() {
+            const container = document.getElementById('questionnaire-container');
+            
+            domains.forEach((domain, domainIndex) => {
+                const pageDiv = document.createElement('div');
+                pageDiv.classList.add('page');
+                pageDiv.id = `page${domainIndex + 1}`;
+
+                let conditionalSection = '';
+                if (domain.conditional) {
+                    conditionalSection = `
+                        <div class="conditional-section">
+                            <div class="conditional-note">
+                                If you work (paid, non-paid, self-employed) or go to school, complete the questions below. 
+                                Otherwise, you can skip this section.
+                            </div>
+                            <div class="checkbox-container">
+                                <label>
+                                    <input type="checkbox" id="workSchoolCheck" onchange="toggleWorkSchool()" ${workSchoolApplicable ? 'checked' : ''}> 
+                                    I work or go to school
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                let specialTextDiv = '';
+                if (domain.specialText) {
+                    specialTextDiv = `<p style="font-style: italic; margin-bottom: 20px; text-align: center; color: #7f8c8d;">${domain.specialText}</p>`;
+                }
+
+                // Adjusting of work/school domain that can be skipped 
+                const questionsHtml = domain.questions.map((question, qIndex) => {
+                    let questionNumber;
+                    if (domainIndex === 5) { 
+                        questionNumber = qIndex + 5; 
+                    } else {
+                        questionNumber = qIndex + 1;
+                    }
+                    
+                    const isD6_4 = question.id === 'd6_4';
+                    const isAttentionCheck = question.isAttentionCheck;
+                    const options = isD6_4 ? d6_4_options : responseOptions;
+                    
+                    let displayDomainNumber;
+                    if (domainIndex === 5) {  
+                        displayDomainNumber = 5;  
+                    } else if (domainIndex === 6) {  
+                        displayDomainNumber = 6;  
+                    } else {
+                        displayDomainNumber = domainIndex + 1;
+                    }
+                    
+                    return `
+                        <div class="question" data-question-id="${question.id}">
+                            <div class="question-id">D${displayDomainNumber}.${questionNumber}</div>
+                            <div>${question.text}</div>
+                            <div class="response-options">
+                                ${options.map(option => `
+                                    <button class="btn btn-response" 
+                                            onclick="selectResponse('${question.id}', ${option.value})"
+                                            data-question="${question.id}" 
+                                            data-value="${option.value}">
+                                        ${option.text}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+ 
+                    let displayDomainNumber;
+                    if (domainIndex === 5) {  
+                        displayDomainNumber = 5;  
+                    } else if (domainIndex === 6) {  
+                        displayDomainNumber = 6;  
+                    } else {
+                        displayDomainNumber = domainIndex + 1;
+                    }
+                    
+                pageDiv.innerHTML = `
+                    <div class="domain-header">
+                        <span>${domain.name}</span>
+                        <span class="domain-number">Domain ${displayDomainNumber} of 6</span>
+                    </div>
+                    ${conditionalSection}
+                    ${specialTextDiv}
+                    <div id="questions-container-${domainIndex + 1}" class="${domain.conditional ? 'conditional-questions' : ''}">
+                        ${questionsHtml}
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn" onclick="previousPage()" ${domainIndex === 0 ? 'style="visibility: hidden;"' : ''}>Previous</button>
+                        <button class="nav-btn next" id="next-btn-${domainIndex + 1}" onclick="${domainIndex === domains.length - 1 ? 'completeWHODAS()' : 'nextPage()'}" disabled>
+                            ${domainIndex === domains.length - 1 ? 'Continue' : 'Next Domain'}
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(pageDiv);
+            });
+        }
+
+        function startQuestionnaire() {
+            currentPage = 1;
+            document.getElementById('progress-section').style.display = 'block';
+            showPage(1);
+        }
+
+        function showPage(pageNumber) { 
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            const targetPage = document.getElementById(`page${pageNumber}`);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                currentPage = pageNumber;
+                if (pageNumber > 0 && pageNumber <= domains.length) {
+                    updateProgress(pageNumber);
+                    startPageTimer(pageNumber);
+                }
+                checkPageComplete(pageNumber);
+            }
+        }
+
+        function updateProgress(pageNumber) {
+            const progressFill = document.getElementById('progress-fill');
+            const progressCurrent = document.getElementById('progress-current');
+            const progressDomainName = document.getElementById('progress-domain-name');
+            
+            const progress = (pageNumber / domains.length) * 100;
+            progressFill.style.width = `${progress}%`;
+             
+            let displayDomainNumber = pageNumber;
+            if (pageNumber === 6) {  
+                displayDomainNumber = 5;  
+            } else if (pageNumber === 7) { 
+                displayDomainNumber = 6; 
+            }
+            progressCurrent.textContent = `Domain ${displayDomainNumber} of 6`;
+            progressDomainName.textContent = domains[pageNumber - 1].name;
+        }
+
+        function selectResponse(questionId, value) { 
+            responses[questionId] = value; 
+            const questionDiv = document.querySelector(`[data-question-id="${questionId}"]`);
+            const buttons = questionDiv.querySelectorAll('.btn-response');
+            buttons.forEach(btn => {
+                btn.classList.remove('selected');
+                if (parseInt(btn.dataset.value) === value) {
+                    btn.classList.add('selected');
+                }
+            });
+            checkPageComplete(currentPage);
+        }
+
+        function findQuestionById(questionId) {
+            for (const domain of domains) {
+                for (const question of domain.questions) {
+                    if (question.id === questionId) {
+                        return question;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function toggleWorkSchool() {
+            const checkbox = document.getElementById('workSchoolCheck');
+            workSchoolApplicable = checkbox.checked;
+            
+            const questionsContainer = document.getElementById('questions-container-6');
+            if (workSchoolApplicable) {
+                questionsContainer.style.opacity = '1';
+                questionsContainer.style.pointerEvents = 'auto';
+            } else {
+                questionsContainer.style.opacity = '0.5';
+                questionsContainer.style.pointerEvents = 'none';
+                 
+                domains[5].questions.forEach(q => {
+                    delete responses[q.id];
+                    const questionDiv = document.querySelector(`[data-question-id="${q.id}"]`);
+                    if (questionDiv) {
+                        questionDiv.querySelectorAll('.btn-response').forEach(btn => {
+                            btn.classList.remove('selected');
+                        });
+                    }
+                });
+            } 
+            checkPageComplete(currentPage);
+        }
+
+        let pageTimer = null;
+        let timeRemaining = 0;
+
+        function checkPageComplete(pageNumber) {
+            if (pageNumber === 0 || pageNumber > domains.length) return;
+            
+            const domain = domains[pageNumber - 1];
+            const nextBtn = document.getElementById(`next-btn-${pageNumber}`);
+            
+            let isComplete = true;
+            
+            if (domain.conditional && !workSchoolApplicable) {
+                // Work/school domain is skipped, so it's complete
+                isComplete = true;
+            } else {
+                // Check if all questions in this domain are answered
+                for (const question of domain.questions) {
+                    if (!responses[question.id]) {
+                        isComplete = false;
+                        break;
+                    }
+                }
+            }
+             
+            updateNextButtonState(nextBtn, isComplete, pageNumber);
+        }
+
+        function updateNextButtonState(nextBtn, isComplete, pageNumber) {
+            if (timeRemaining > 0) {
+                nextBtn.disabled = true;
+                const isLastPage = pageNumber === domains.length;
+                nextBtn.textContent = isLastPage ? `Continue (${timeRemaining})` : `Next Domain (${timeRemaining})`;
+            } else {
+                nextBtn.disabled = !isComplete;
+                const isLastPage = pageNumber === domains.length;
+                nextBtn.textContent = isLastPage ? 'Continue' : 'Next Domain';
+            }
+        }
+
+        function startPageTimer(pageNumber) {
+            if (pageTimer) {
+                clearInterval(pageTimer);
+            }
+            
+            timeRemaining = 10;
+            const nextBtn = document.getElementById(`next-btn-${pageNumber}`);
+             
+            const domain = domains[pageNumber - 1];
+            let isComplete = true;
+            
+            if (domain.conditional && !workSchoolApplicable) {
+                isComplete = true;
+            } else {
+                for (const question of domain.questions) {
+                    if (!responses[question.id]) {
+                        isComplete = false;
+                        break;
+                    }
+                }
+            }
+            
+            updateNextButtonState(nextBtn, isComplete, pageNumber);
+        
+            pageTimer = setInterval(() => {
+                timeRemaining--;
+                updateNextButtonState(nextBtn, isComplete, pageNumber);
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(pageTimer);
+                    pageTimer = null;
+                    checkPageComplete(pageNumber);
+                }
+            }, 1000);
+        }
+
+        function nextPage() {
+            if (currentPage < domains.length) {
+                showPage(currentPage + 1);
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                showPage(currentPage - 1);
+            }
+        }
+ 
+        function completeWHODAS() { 
+            const finalData = gatherCurrentData();
+            finalData.whodas_incomplete = false;
+            finalData.study_aborted = false;
+            const csvData = convertToCSV(finalData);
+            const lastPageNumber = domains.length;
+            const lastPage = document.getElementById(`page${lastPageNumber}`);
+            const submitBtn = document.getElementById(`next-btn-${lastPageNumber}`);
+            if (submitBtn) submitBtn.disabled = true;
+            
+            const loadingMessage = document.createElement('p');
+            loadingMessage.textContent = 'Submitting data...';
+            lastPage.appendChild(loadingMessage);
+            
+            if (typeof jatos !== 'undefined') {
+                console.log("Submitting data to JATOS");
+                jatos.submitResultData(csvData)
+                    .then(() => {
+                        console.log('Data submitted successfully');
+                        loadingMessage.textContent = 'Data submitted. Starting next component...'; 
+                        return jatos.startNextComponent();
+                    })
+                    .catch((error) => {
+                        console.error("Error during submission:", error);
+                        loadingMessage.textContent = 'Error occurred. Please try again or contact the researcher.';
+                        if (submitBtn) submitBtn.disabled = false;
+                        alert("An error occurred. Please try again or contact the researcher if the problem persists.");
+                    });
+            } else { 
+                loadingMessage.textContent = 'Study completed! (JATOS not available) Data collected:';
+                const dataDisplay = document.createElement('pre');
+                dataDisplay.style.color = 'black';
+                dataDisplay.style.fontSize = '12px';
+                dataDisplay.style.marginTop = '10px';
+                dataDisplay.style.backgroundColor = 'white';
+                dataDisplay.style.padding = '10px';
+                dataDisplay.style.borderRadius = '5px';
+                dataDisplay.style.overflow = 'auto';
+                dataDisplay.style.maxHeight = '400px';
+                dataDisplay.textContent = csvData;
+                lastPage.appendChild(dataDisplay);
+            }
+        }
+
+        // calculateScores function has been removed since it's not used in the current implementation
+
+        // Function to gather current data in case of abort 
+        function gatherCurrentData() {
+            const data = {
+                participant_id: participantId,
+                whodas_total: 0,
+                whodas_d1_total: 0,
+                whodas_d2_total: 0,
+                whodas_d3_total: 0,
+                whodas_d4_total: 0,
+                whodas_d5_household_total: 0,
+                whodas_d5_work_total: 0,
+                whodas_d6_total: 0,
+                whodas_d1_average: 0,
+                whodas_d2_average: 0,
+                whodas_d3_average: 0,
+                whodas_d4_average: 0,
+                whodas_d5_household_average: 0,
+                whodas_d5_work_average: 0,
+                whodas_d6_average: 0,
+                whodas_attention_fails: 0,
+                whodas_time: null,
+                whodas_incomplete: true,
+                whodas_last_page: currentPage,
+                task_version: document.title,
+            };
+
+            
+            const domainItemCounts = {
+                d1: 6,   
+                d2: 5,   
+                d3: 4,   
+                d4: 5,  
+                d5_household: 4,   
+                d5_work: 4,  
+                d6: 8   
+            };
+ 
+            let attentionFailCount = 0;
+            Object.keys(responses).forEach(questionId => {
+                const question = findQuestionById(questionId);
+                if (question && question.isAttentionCheck) { 
+                    const attentionFailed = responses[questionId] !== question.expectedAnswer;
+                    if (attentionFailed) {
+                        attentionFailCount++;
+                    }
+                    data[questionId] = {
+                        answer: responses[questionId],
+                        attention_failed: attentionFailed
+                    };
+                } else { 
+                    data[questionId] = responses[questionId];
+                    
+                    if (questionId.startsWith('d1_')) data.whodas_d1_total += responses[questionId];
+                    else if (questionId.startsWith('d2_')) data.whodas_d2_total += responses[questionId];
+                    else if (questionId.startsWith('d3_') && !questionId.includes('attention')) data.whodas_d3_total += responses[questionId];
+                    else if (questionId.startsWith('d4_') && !questionId.includes('attention')) data.whodas_d4_total += responses[questionId];
+                    else if (questionId.startsWith('d5_') && parseInt(questionId.split('_')[1]) <= 4) data.whodas_d5_household_total += responses[questionId];
+                    else if (questionId.startsWith('d5_') && parseInt(questionId.split('_')[1]) > 4) data.whodas_d5_work_total += responses[questionId];
+                    else if (questionId.startsWith('d6_')) data.whodas_d6_total += responses[questionId];
+                    data.whodas_total += responses[questionId];
+                }
+            });
+ 
+            data.whodas_attention_fails = attentionFailCount;
+ 
+            data.whodas_d1_average = data.whodas_d1_total > 0 ? data.whodas_d1_total / domainItemCounts.d1 : 0;
+            data.whodas_d2_average = data.whodas_d2_total > 0 ? data.whodas_d2_total / domainItemCounts.d2 : 0;
+            data.whodas_d3_average = data.whodas_d3_total > 0 ? data.whodas_d3_total / domainItemCounts.d3 : 0;
+            data.whodas_d4_average = data.whodas_d4_total > 0 ? data.whodas_d4_total / domainItemCounts.d4 : 0;
+            data.whodas_d5_household_average = data.whodas_d5_household_total > 0 ? data.whodas_d5_household_total / domainItemCounts.d5_household : 0;
+            data.whodas_d5_work_average = data.whodas_d5_work_total > 0 ? data.whodas_d5_work_total / domainItemCounts.d5_work : 0;
+            data.whodas_d6_average = data.whodas_d6_total > 0 ? data.whodas_d6_total / domainItemCounts.d6 : 0;
+
+            const endTime = performance.now();
+            const timeTaken = startTime ? (endTime - startTime) / 1000 : 0;
+            data.whodas_time = timeTaken;
+
+            return data;
+        }
+
+        // Function to convert data to CSV format
+        function convertToCSV(data) {
+            const headers = [
+                'participant_id', 'whodas_question', 'whodas_answer', 'is_attention_check', 'attention_failed',
+                'whodas_total', 'whodas_d1_total', 'whodas_d2_total', 'whodas_d3_total', 'whodas_d4_total',
+                'whodas_d5_household_total', 'whodas_d5_work_total', 'whodas_d6_total', 
+                'whodas_d1_average', 'whodas_d2_average', 'whodas_d3_average', 'whodas_d4_average',
+                'whodas_d5_household_average', 'whodas_d5_work_average', 'whodas_d6_average',
+                'whodas_attention_fails', 'whodas_time', 'task_version', 'study_aborted'
+            ];
+
+            let csvRows = [headers.join(',')];
+
+            // Process regular WHODAS questions
+            domains.forEach(domain => {
+                domain.questions.forEach(question => {
+                    if (data[question.id] !== undefined) {
+                        const isAttentionCheck = question.isAttentionCheck || false;
+                        let questionAnswer, attentionFailed = '';
+                        
+                        if (isAttentionCheck) {
+                            questionAnswer = data[question.id].answer || '';
+                            attentionFailed = data[question.id].attention_failed || false;
+                        } else {
+                            questionAnswer = data[question.id] || '';
+                        }
+
+                        csvRows.push([
+                            data.participant_id || '', question.id, questionAnswer,
+                            isAttentionCheck, attentionFailed, data.whodas_total || '',
+                            data.whodas_d1_total || '', data.whodas_d2_total || '', data.whodas_d3_total || '',
+                            data.whodas_d4_total || '', data.whodas_d5_household_total || '', data.whodas_d5_work_total || '',
+                            data.whodas_d6_total || '', 
+                            data.whodas_d1_average || '', data.whodas_d2_average || '', data.whodas_d3_average || '',
+                            data.whodas_d4_average || '', data.whodas_d5_household_average || '', data.whodas_d5_work_average || '',
+                            data.whodas_d6_average || '',
+                            data.whodas_attention_fails || 0, data.whodas_time || '',
+                            data.task_version || '', data.study_aborted || false
+                        ].join(','));
+                    }
+                });
+            });
+
+            return csvRows.join('\n');
+        }
+
+        async function abortStudy() {
+            if (confirm("Are you sure you want to abort the study? Your progress will be saved before exiting.")) {
+                const loadingOverlay = document.createElement('div');
+                loadingOverlay.style.position = 'fixed';
+                loadingOverlay.style.top = '0';
+                loadingOverlay.style.left = '0';
+                loadingOverlay.style.width = '100%';
+                loadingOverlay.style.height = '100%';
+                loadingOverlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                loadingOverlay.style.zIndex = '9999';
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.style.justifyContent = 'center';
+                loadingOverlay.style.alignItems = 'center';
+                
+                const loadingMessage = document.createElement('div');
+                loadingMessage.style.padding = '20px';
+                loadingMessage.style.backgroundColor = 'white';
+                loadingMessage.style.borderRadius = '10px';
+                loadingMessage.style.fontSize = '18px';
+                loadingMessage.textContent = 'Saving your data before exiting...';
+                
+                loadingOverlay.appendChild(loadingMessage);
+                document.body.appendChild(loadingOverlay);
+                
+                try {
+                    if (currentPage > 0) {
+                        const partial_data = gatherCurrentData();
+                        partial_data.study_aborted = true;
+                        partial_data.abort_reason = "Manual abort by participant";
+                        
+                        if (typeof jatos !== 'undefined') {
+                            try {
+                                const csvData = convertToCSV(partial_data);
+                                await jatos.submitResultData(csvData);
+                                loadingMessage.textContent = 'Data saved successfully. Redirecting...';
+                            } catch (err) {
+                                loadingMessage.textContent = 'Error saving data. Redirecting anyway...';
+                            }
+                        } else {
+                            loadingMessage.textContent = 'JATOS not available. Displaying partial data...';
+                            const dataDisplay = document.createElement('pre');
+                            dataDisplay.style.color = 'black';
+                            dataDisplay.style.fontSize = '12px';
+                            dataDisplay.style.marginTop = '10px';
+                            dataDisplay.style.backgroundColor = 'white';
+                            dataDisplay.style.padding = '10px';
+                            dataDisplay.style.borderRadius = '5px';
+                            dataDisplay.style.overflow = 'auto';
+                            dataDisplay.style.maxHeight = '200px';
+                            dataDisplay.textContent = convertToCSV(partial_data);
+                            loadingOverlay.appendChild(dataDisplay);
+                            
+                            // Add a close button
+                            const closeBtn = document.createElement('button');
+                            closeBtn.textContent = 'Close';
+                            closeBtn.style.marginTop = '15px';
+                            closeBtn.style.padding = '8px 20px';
+                            closeBtn.style.backgroundColor = '#dc3545';
+                            closeBtn.style.color = 'white';
+                            closeBtn.style.border = 'none';
+                            closeBtn.style.borderRadius = '5px';
+                            closeBtn.onclick = () => document.body.removeChild(loadingOverlay);
+                            loadingOverlay.appendChild(closeBtn);
+                            return;
+                        }
+                    } else {
+                        loadingMessage.textContent = 'No data to save. Redirecting...';
+                    }
+                    
+                    setTimeout(() => {
+                        window.location.href = 'https://app.prolific.com/submissions/complete?cc=C1EW0YXJ';
+                    }, 1500);
+                    
+                } catch (error) {
+                    window.location.href = 'https://app.prolific.com/submissions/complete?cc=C1EW0YXJ';
+                }
+            }
+        }
+ 
+        function startQuestionnaire() {
+            if (typeof jatos !== 'undefined') {
+                initializeJatos()
+                    .then(() => {
+                        startTime = performance.now();  
+                        currentPage = 1;
+                        document.getElementById('progress-section').style.display = 'block';
+                        showPage(1);
+                    })
+                    .catch(error => { 
+                        startTime = performance.now();
+                        participantId = 'test';
+                        currentPage = 1;
+                        document.getElementById('progress-section').style.display = 'block';
+                        showPage(1);
+                    });
+            } else {
+                // No JATOS - start questionnaire directly
+                startTime = performance.now();
+                participantId = 'test';
+                currentPage = 1;
+                document.getElementById('progress-section').style.display = 'block';
+                showPage(1);
+            }
+        }
+
+        // Initialize the questionnaire
+        createDomainPages();
+        
+        // Initialize work/school section styling
+        const workSchoolContainer = document.getElementById('questions-container-6');
+        if (workSchoolContainer) {
+            workSchoolContainer.style.opacity = '0.5';
+            workSchoolContainer.style.pointerEvents = 'none';
+        }
+    </script>
+</body>
+</html>
