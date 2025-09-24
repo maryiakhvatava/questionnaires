@@ -1,0 +1,778 @@
+<!--This is a web-version of the Motivation and Pleasure Scale – Self-Report (MAP-SR) questionnaire. It assesses negative symptoms related to motivation, effort, interest, and pleasure across various life areas.-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MAP-SR Questionnaire</title>
+    <style>
+        body {
+            font-family: "OpenDyslexic", Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: #f0f8ff;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 26px;
+        }
+        h2 {
+            font-size: 22px;
+        }
+        .page {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .question {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        .scale-container {
+            margin-bottom: 15px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .scale.hidden {
+            display: none;
+        }
+        .scale-question {
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+        }
+        .scale-options {
+            display: flex;
+            justify-content: space-between;
+        }
+        .scale-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 16px;
+            padding: 4px;
+            border-radius: 5px;
+            min-width: 80px;
+        }
+        .scale-option small {
+            font-size: 12px;
+            margin-top: 4px;
+            text-align: center;
+            color: #666;
+            line-height: 1.2;
+            max-width: 70px;
+        }
+        input[type="radio"] {
+            margin-top: 8px;
+            transform: scale(1.3);
+        }
+        .hidden {
+            display: none;
+        }
+        .navigation {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .btn-primary {
+            background-color: #34495e;
+            color: white;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .time-estimate {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        #abortButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            padding: 10px 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #abortButton:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <button id="abortButton" onclick="abortStudy()">Abort Study</button>
+    <h1>Motivation and Pleasure Scale – Self-Report</h1>
+    <div id="questionnaire-container"></div>
+    <script src="jatos.js"></script>
+    <script src="prolificLinks.js"></script>
+    <script src="inactivity.js"></script>
+    <script>
+        let participantId = 'test';  
+        
+        if (typeof jatos !== 'undefined') {
+            jatos.onLoad(() => {
+                participantId = jatos.studySessionData?.participantId || 'test';
+            });
+        }
+
+        const startTime = performance.now();
+        let currentPage = 0;
+        let attentionFails = 0;
+        let remainingTime = 0;
+        let pageTimerInterval = null;
+
+        // Define attention checks
+        const attentionChecks = [
+            { id: 1, text: "This is an attention check. Please select option three for this question.", expected_answers: [3] },
+            { id: 2, text: "This is an attention check. Please select option one for this question.", expected_answers: [1] },
+        ];
+        const scaleBackgroundColors = ['#f9f9f9', '#f0f0f0', '#e8e8e8'];
+        // Define main questions
+        const questions = [
+            { id: 1, text: "In the past week, what is the most pleasure you experienced from being with other people?" },
+            { id: 2, text: "In the past week, how often have you experienced pleasure from being with other people?" },
+            { id: 3, text: "Looking ahead to being with other people in the next few weeks, how much pleasure do you expect you will experience from being with others?" },
+            { id: 4, text: "In the past week, what is the most pleasure you experienced from hobbies, recreation, or from work?" },
+            { id: 5, text: "In the past week, how often have you experienced pleasure from hobbies, recreation, or from work?" },
+            { id: 6, text: "Looking ahead to the next few weeks, how much pleasure do you expect you will experience from your hobbies, recreation, or work?" },
+            { id: 7, text: "When it comes to close relationships with your family members, how important have these relationships been to you over the past week?" },
+            { id: 8, text: "When it comes to having a close relationship with a romantic partner, how important has this type of relationship been to you over the past week?" },
+            { id: 9, text: "When it comes to close relationships with your friends, how important have these relationships been to you over the past week?" },
+            { id: 10, text: "In the past week how motivated have you been to be around other people and do things with them?" },
+            { id: 11, text: "In the past week how much effort have you made to actually do things with other people?" },
+            { id: 12, text: "In the past week how motivated have you been to go to work or school or look for a job or class to take?" },
+            { id: 13, text: "In the past week how much effort have you made to do things at work or school? (If you are not working or going to school, how much effort have you made to look for a job or go to school.)" },
+            { id: 14, text: "In the past week how motivated have you been to do hobbies or other recreational activities?" },
+            { id: 15, text: "In the past week how much effort have you made to actually do any hobbies or recreational activities?" }
+        ];
+        
+    
+        // Combine main questions and attention checks with controlled placement (any place in the questionnaire except the first question) 
+        function injectAttentionChecks(questions, attention_checks) {
+            const out = [...questions];
+            const start = out.findIndex(q => q.id === 1) + 1;    
+            const end = out.length; 
+            const slots = new Set();
+            while (slots.size < attention_checks.length) {
+                slots.add(Math.floor(Math.random() * (end - start)) + start);
+            }
+            const shuffledACs = [...attention_checks].sort(() => Math.random() - 0.5);
+            [...slots].sort((a,b) => a - b).forEach((pos, i) => {
+                out.splice(pos + i, 0, { ...shuffledACs[i], is_attention_check: true });
+            });
+            return out;
+        }
+        const allQuestions = injectAttentionChecks(questions, attentionChecks);
+
+        //Define section intros
+        const section1Intro = "This section focuses on activities in which you may experience pleasure. By pleasure we mean the enjoyment or happiness you experience. The questions ask about how much pleasure you experience from different activities; how often you experience pleasure; and how much you expect to experience pleasure in the future.";
+        const socialPleasureIntro = " The next 3 questions ask about enjoyment and happiness from being around other people and different social activities. Social activities can include spending time with your family, friends, romantic partners, as well as people that you may not know as well such as co-workers, neighbors, or people you meet during a typical day.";
+        const recreationalWorkPleasureIntro = " The next 3 questions ask about enjoyment and happiness from hobbies such as sports, crafts, reading or watching a movie or TV. This also includes pleasure from work, school, or volunteer activities.";
+        const section2Intro = "The following section focuses how you have felt about close, caring relationships in the last week. We are interested in how you have felt about relationships with your family, a romantic partner, or friends. Even if you have not had these kinds of relationships in the past week, we still want to know how you feel about these types of relationships. Please answer all the questions.";
+        const section3Intro = "We would like to know how much you wanted or were motivated to do various activities in the past week and how much effort you have made to actually do them. By 'effort' we mean the things you actually did to get the things you wanted or were motivated to do. This might include calling a friend to make plans, approaching other people to meet them or speak with them, or looking in the newspaper for a job. Wanting something is not the same as making an effort to get that thing. Someone may want very much to make friends but make little effort to start conversations and meet new people.";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createIntroPage();
+            createQuestionPages();
+            showPage(0); // Start with intro page
+        });
+
+        // (Section intros are injected dynamically before specific question groups inside createQuestionPages)
+
+        function createIntroPage() {
+            const container = document.getElementById('questionnaire-container');
+            const introDiv = document.createElement('div');
+            introDiv.classList.add('page');
+            introDiv.id = 'page0';
+            
+            introDiv.innerHTML = `
+                <div class="time-estimate">This questionnaire should take about 5 minutes to complete.</div>
+                <p><strong>INSTRUCTIONS:</strong> This questionnaire asks about your feelings and experiences during the past week in a variety of areas. There are 3 sections and each section has its own directions. Please read these directions carefully and select the responses that best describe your feelings and experiences.</p>
+                <p><strong>Please note that in this questionnaire you rate your feelings according to the scale, where <span style="color: red;">0</span> means no pleasure at all and <span style="color: red;">4</span> means extreme pleasure.</strong></p>
+                <p style="font-size: 20px; font-weight: bold; color: #e74c3c; text-align: center; margin: 20px 0;">Please answer honestly; our research depends on you!</p>
+                <div class="navigation">
+                    <button onclick="nextPage()" class="btn btn-primary">Start Questionnaire</button>
+                </div>
+            `;
+            
+            container.appendChild(introDiv);
+        }
+
+        function createQuestionPages() {
+            const container = document.getElementById('questionnaire-container');
+            const timerDuration = 5;
+
+            const existingPages = container.querySelectorAll('.page');
+            const startPage = existingPages.length; 
+
+             const introMap = {
+                1: { title: 'Section 1: Pleasure Activities', text: section1Intro },
+                1.1: { title: 'Social Activities', text: socialPleasureIntro },
+                4: { title: 'Recreational and Work Activities', text: recreationalWorkPleasureIntro },
+                7: { title: 'Section 2: Close Relationships', text: section2Intro },
+                10: { title: 'Section 3: Motivation and Effort', text: section3Intro }
+            };
+
+            let pageIndex = startPage; 
+
+            allQuestions.forEach((questionObj, index) => {
+                 const qid = questionObj.id;
+
+                // Insert Section 1 main intro and social intro 
+                if (!questionObj.is_attention_check && qid === 1) {
+                    const s1 = introMap[1];
+                    const div1 = document.createElement('div');
+                    div1.classList.add('page');
+                    div1.id = `page${pageIndex}`;
+                    div1.innerHTML = `
+                        <h2>${s1.title}</h2>
+                        <p>${s1.text}</p>
+                        <div class="navigation">
+                            <button id="next-btn-${pageIndex}" onclick="nextPage()" class="btn btn-primary">Next</button>
+                        </div>
+                    `;
+                    container.appendChild(div1);
+                    div1.timerDuration = null;
+                    setTimeout(() => { div1.nextBtn = document.getElementById(`next-btn-${pageIndex}`); }, 0);
+                    pageIndex++;
+
+                    // Insert Social intro
+                    const s1b = introMap[1.1];
+                    const div1b = document.createElement('div');
+                    div1b.classList.add('page');
+                    div1b.id = `page${pageIndex}`;
+                    div1b.innerHTML = `
+                        <h2>${s1b.title}</h2>
+                        <p><strong>${s1b.text}</strong></p>
+                        <div class="navigation">
+                            <button id="next-btn-${pageIndex}" onclick="nextPage()" class="btn btn-primary">Next</button>
+                        </div>
+                    `;
+                    container.appendChild(div1b);
+                    div1b.timerDuration = null;
+                    setTimeout(() => { div1b.nextBtn = document.getElementById(`next-btn-${pageIndex}`); }, 0);
+                    pageIndex++;
+                }
+
+                // Insert recreational intro 
+                if (!questionObj.is_attention_check && qid === 4) {
+                    const r = introMap[4];
+                    const divR = document.createElement('div');
+                    divR.classList.add('page');
+                    divR.id = `page${pageIndex}`;
+                    divR.innerHTML = `
+                        <h2>${r.title}</h2>
+                        <p><strong>${r.text}</strong></p>
+                        <div class="navigation">
+                            <button id="next-btn-${pageIndex}" onclick="nextPage()" class="btn btn-primary">Next</button>
+                        </div>
+                    `;
+                    container.appendChild(divR);
+                    divR.timerDuration = null;
+                    setTimeout(() => { divR.nextBtn = document.getElementById(`next-btn-${pageIndex}`); }, 0);
+                    pageIndex++;
+                }
+
+                // Insert section2 intro 
+                if (!questionObj.is_attention_check && qid === 7) {
+                    const s2 = introMap[7];
+                    const divS2 = document.createElement('div');
+                    divS2.classList.add('page');
+                    divS2.id = `page${pageIndex}`;
+                    divS2.innerHTML = `
+                        <h2>${s2.title}</h2>
+                        <p>${s2.text}</p>
+                        <div class="navigation">
+                            <button id="next-btn-${pageIndex}" onclick="nextPage()" class="btn btn-primary">Next</button>
+                        </div>
+                    `;
+                    container.appendChild(divS2);
+                    divS2.timerDuration = null;
+                    setTimeout(() => { divS2.nextBtn = document.getElementById(`next-btn-${pageIndex}`); }, 0);
+                    pageIndex++;
+                }
+
+                // Insert section3 intro 
+                if (!questionObj.is_attention_check && qid === 10) {
+                    const s3 = introMap[10];
+                    const divS3 = document.createElement('div');
+                    divS3.classList.add('page');
+                    divS3.id = `page${pageIndex}`;
+                    divS3.innerHTML = `
+                        <h2>${s3.title}</h2>
+                        <p>${s3.text}</p>
+                        <div class="navigation">
+                            <button id="next-btn-${pageIndex}" onclick="nextPage()" class="btn btn-primary">Next</button>
+                        </div>
+                    `;
+                    container.appendChild(divS3);
+                    divS3.timerDuration = null;
+                    setTimeout(() => { divS3.nextBtn = document.getElementById(`next-btn-${pageIndex}`); }, 0);
+                    pageIndex++;
+                }
+
+                // Create the question page
+                const pageNum = pageIndex; 
+                const pageDiv = document.createElement('div');
+                pageDiv.classList.add('page');
+                pageDiv.id = `page${pageNum}`;
+
+                const isAttentionCheck = questionObj.is_attention_check || false;
+                const questionId = isAttentionCheck ? `map_ac${questionObj.id}` : `map_q${questionObj.id}`;
+                const questionText = questionObj.text;
+
+                pageDiv.innerHTML = `
+                    <div class="question">${questionText}</div>
+                    <div class="scale-container" style="background-color: ${scaleBackgroundColors[0]}">
+                        <div class="scale-options">
+                            ${createScaleOptions(pageNum, isAttentionCheck, questionObj.expected_answers, questionObj)}
+                        </div>
+                    </div>
+                    <div class="navigation">
+                        <button id="next-btn-${pageNum}" onclick="${index < allQuestions.length - 1 ? 'nextPage()' : 'confirmSubmit()'}" class="btn btn-primary">${index < allQuestions.length - 1 ? `Next (${timerDuration})` : `Submit (${timerDuration})`}</button>
+                    </div>
+                `;
+
+                // Store timer duration and next button reference
+                pageDiv.timerDuration = timerDuration;
+                setTimeout(() => {
+                    pageDiv.nextBtn = document.getElementById(`next-btn-${pageNum}`);
+                    const radioButtons = pageDiv.querySelectorAll('input[type="radio"]');
+                    radioButtons.forEach(input => {
+                        input.addEventListener('change', () => {
+                            if (pageDiv.nextBtn) {
+                                updateNextButtonStateForTimer(pageDiv.nextBtn, pageNum);
+                            }
+                            if (isAttentionCheck) {
+                                validateAttentionCheck(pageNum, questionObj);
+                            }
+                        });
+                    });
+                }, 100);
+
+                // Add event listeners for attention checks
+                if (isAttentionCheck) {
+                    setTimeout(() => {
+                        const inputs = pageDiv.querySelectorAll('input[type="radio"]');
+                        inputs.forEach(input => {
+                            input.addEventListener('change', () => {
+                                validateAttentionCheck(pageNum, questionObj);
+                            });
+                        });
+                    }, 100);
+                }
+                container.appendChild(pageDiv);
+                pageIndex++;
+            });
+        }
+
+    function createScaleOptions(questionNumber, isAttentionCheck, expectedAnswers, questionObj) {
+            let optionsHTML = '';
+            
+            // Define labels for different question types
+            const pleasureLabels = ['No pleasure', 'A little', 'Moderate', 'Quite a bit', 'Extreme pleasure'];
+            const frequencyLabels = ['Not at all', 'Rarely', 'A few times', 'Often', 'Very often'];
+            const importanceLabels = ['Not at all important to me', 'A little', 'Moderate', 'Quite a bit', 'Extremely important to me'];
+            const motivationLabels = ['Not at all motivated', 'A little', 'Moderate', 'Quite a bit', 'Very motivated'];
+            const effortLabels = ['No effort', 'A little', 'Moderate', 'Quite a bit', 'Very much effort'];
+            const defaultLabels = ['Not at all', 'Slightly', 'Moderately', 'Quite a bit', 'Very much'];
+            
+            
+            const pleasureQuestions = [1, 3, 4, 6];
+            const frequencyQuestions = [2, 5];
+            const importanceQuestions = [7, 8, 9];
+            const motivationQuestions = [10, 12, 14];
+            const effortQuestions = [11, 13, 15];
+            
+            let labels = defaultLabels;
+            
+            if (questionObj && !isAttentionCheck) {
+                if (pleasureQuestions.includes(questionObj.id)) {
+                    labels = pleasureLabels;
+                } else if (frequencyQuestions.includes(questionObj.id)) {
+                    labels = frequencyLabels;
+                } else if (importanceQuestions.includes(questionObj.id)) {
+                    labels = importanceLabels;
+                } else if (motivationQuestions.includes(questionObj.id)) {
+                    labels = motivationLabels;
+                } else if (effortQuestions.includes(questionObj.id)) {
+                    labels = effortLabels;
+                }
+            }
+            
+            for (let i = 0; i <= 4; i++) {
+                optionsHTML += `
+                    <label class="scale-option" data-value="${i}">
+                        <span>${i}</span>
+                        <small>${labels[i]}</small>
+                        <input type="radio" name="q${questionNumber}" value="${i}" required>
+                    </label>
+                `;
+            }
+            return optionsHTML;
+        }
+
+        
+        function validateAttentionCheck(pageNumber, questionObj) {
+            const selectedValue = parseInt(document.querySelector(`input[name="q${pageNumber}"]:checked`)?.value);
+            const isCorrect = Array.isArray(questionObj.expected_answers) ? questionObj.expected_answers.includes(selectedValue) : false;
+            
+            questionObj.attention_failed = !isCorrect;
+            attentionFails = 0;
+            allQuestions.forEach(question => {
+                if (question.is_attention_check && question.attention_failed === true) {
+                    attentionFails++;
+                }
+            });
+            
+            console.log(`Attention check ${questionObj.id}: selected=${selectedValue}, correct=${isCorrect}, total_fails=${attentionFails}`);
+        }
+
+        // Convert data to CSV
+    function convertToCSV(data) {
+            const headers = [
+                'participant_id',
+                'map_question',
+                'map_answer',
+                'is_attention_check',
+                'attention_failed',
+                'map_time',
+                'map_attention_fails',
+                'task_version',
+                'study_aborted',
+            ];
+            let csvRows = [];
+            csvRows.push(headers.join(','));
+
+            // Process all questions in the order they appeared to the participant
+            allQuestions.forEach((questionObj) => {
+                const isAttentionCheck = questionObj.is_attention_check || false;
+                const questionId = isAttentionCheck ? `map_ac${questionObj.id}` : `map_q${questionObj.id}`;
+                const row = [];
+                row.push(data.participant_id || '');
+                row.push(questionId);
+                
+                if (isAttentionCheck) {
+                    row.push(data.answers[questionId].answer || '');
+                    row.push(true); // is_attention_check
+                    row.push(data.answers[questionId].attention_failed || false);
+                } else {
+                    row.push(data.answers[questionId]);
+                    row.push(false); // is_attention_check
+                    row.push(''); 
+                }
+                row.push(data.map_time || '');
+                row.push(data.map_attention_fails || 0);
+                row.push(data.task_version || ''); 
+                row.push(data.study_aborted || false);
+                csvRows.push(row.join(','));
+            });
+            return csvRows.join('\n');
+        }
+
+        function updateNextButtonStateForTimer(nextBtn, pageNumber) {
+            const currentPageElement = document.getElementById(`page${pageNumber}`);
+            if (!currentPageElement) return;
+            const radioButtons = currentPageElement.querySelectorAll('input[type="radio"]');
+            
+            // Only check if radio buttons exist (question pages)
+            const allAnswered = radioButtons.length === 0 || currentPageElement.querySelector('input[type="radio"]:checked') !== null;
+            const totalPages = document.querySelectorAll('.page').length - 1; // Subtract 1 for intro page
+            
+            if (remainingTime > 0) {
+                nextBtn.disabled = true;
+                nextBtn.textContent = pageNumber < totalPages ? `Next (${remainingTime})` : `Submit (${remainingTime})`;
+            } else {
+                nextBtn.textContent = pageNumber < totalPages ? 'Next' : 'Submit';
+            }
+            nextBtn.disabled = remainingTime > 0 || !allAnswered;
+        }
+
+        function confirmSubmit() {
+            const data = {
+                participant_id: participantId,
+                answers: {},
+                map_attention_fails: attentionFails,
+                task_version: document.title,
+            };
+
+            // Only collect answers from question pages, not intro pages
+            allQuestions.forEach((questionObj, index) => {
+                 let pageNumber = -1;
+                const questionPages = document.querySelectorAll('.page');
+                for (let i = 0; i < questionPages.length; i++) {
+                    const page = questionPages[i];
+                    const questionElements = page.querySelectorAll('.question');
+                    if (questionElements.length > 0 && questionElements[0].textContent === questionObj.text) {
+                        const idMatch = page.id.match(/page(\d+)/);
+                        if (idMatch) pageNumber = parseInt(idMatch[1], 10);
+                        break;
+                    }
+                }
+
+                if (pageNumber === -1) return;
+                if (pageNumber > currentPage) return;
+
+                const isAttentionCheck = questionObj.is_attention_check || false;
+                const questionId = isAttentionCheck ? `map_ac${questionObj.id}` : `map_q${questionObj.id}`;
+                const selectedValue = document.querySelector(`input[name="q${pageNumber}"]:checked`)?.value;
+
+                if (isAttentionCheck) {
+                    data.answers[questionId] = {
+                        answer: selectedValue,
+                        attention_failed: questionObj.attention_failed || false
+                    };
+                } else {
+                    data.answers[questionId] = selectedValue;
+                }
+            });
+
+            const endTime = performance.now();
+            const timeTaken = (endTime - startTime) / 1000;
+            data.map_time = timeTaken;
+            
+            
+            window.onbeforeunload = null;
+            const pageElems = document.querySelectorAll('.page');
+            let maxPageId = -Infinity;
+            pageElems.forEach(p => {
+                const m = p.id.match(/page(\d+)/);
+                if (m) maxPageId = Math.max(maxPageId, parseInt(m[1], 10));
+            });
+            const lastPageNumber = (isFinite(maxPageId) ? maxPageId : (document.querySelectorAll('.page').length - 1));
+            const submitBtn = document.querySelector(`#next-btn-${lastPageNumber}`);
+            submitBtn.disabled = true;
+            
+            const loading_message = document.createElement('p');
+            loading_message.textContent = 'Submitting data...';
+            document.querySelector(`.page.active`).appendChild(loading_message);
+
+            // Convert data to CSV format
+            const csvData = convertToCSV(data);                
+            if (typeof jatos !== 'undefined') {
+                jatos.submitResultData(csvData)
+                .then(() => {
+                    console.log('Data submitted successfully');
+                    loading_message.textContent = 'Data submitted. Starting next component...';
+                    return jatos.startNextComponent();
+                })
+                .catch((error) => {
+                    console.error("Error during submission:", error);
+                    loading_message.textContent = 'Error occurred. Please try again or contact the researcher.';
+                    submitBtn.disabled = false;
+                    alert("An error occurred. Please try again or contact the researcher if the problem persists.");
+                });
+            } else {
+                // If no JATOS is available, just show the data
+                loading_message.textContent = 'Study completed! (JATOS not available) Data collected:';
+                const dataDisplay = document.createElement('pre');
+                dataDisplay.style.color = 'black';
+                dataDisplay.style.fontSize = '12px';
+                dataDisplay.style.marginTop = '10px';
+                dataDisplay.style.backgroundColor = 'white';
+                dataDisplay.style.padding = '10px';
+                dataDisplay.style.borderRadius = '5px';
+                dataDisplay.textContent = csvData;
+                document.querySelector(`.page.active`).appendChild(dataDisplay);
+            }
+        }
+
+
+        function showPage(pageNumber) {
+            if (pageTimerInterval) {
+                clearInterval(pageTimerInterval);
+                pageTimerInterval = null;
+            }
+
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            const currentPageDiv = document.getElementById(`page${pageNumber}`);
+            currentPageDiv.classList.add('active');
+            currentPage = pageNumber;
+
+            // Start timer only for question pages (not intro pages)
+            if (currentPageDiv.timerDuration && currentPageDiv.nextBtn) {
+                remainingTime = currentPageDiv.timerDuration;
+                const nextBtn = currentPageDiv.nextBtn;
+
+                updateNextButtonStateForTimer(nextBtn, pageNumber);
+
+                pageTimerInterval = setInterval(() => {
+                    remainingTime--;
+                    updateNextButtonStateForTimer(nextBtn, pageNumber);
+
+                    if (remainingTime <= 0) {
+                        clearInterval(pageTimerInterval);
+                        pageTimerInterval = null;
+                    }
+                }, 1000);
+            }
+        }
+
+        function nextPage() { 
+            const currentPageElement = document.getElementById(`page${currentPage}`);
+            const radioButtons = currentPageElement.querySelectorAll('input[type="radio"]');
+            
+            if (radioButtons.length > 0) {
+                const selectedOption = currentPageElement.querySelector('input[type="radio"]:checked');
+                
+                if (!selectedOption) {
+                    // if no option selected, show error message
+                    if (!currentPageElement.querySelector('.error-message')) {
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'error-message';
+                        errorMsg.style.color = 'red';
+                        errorMsg.style.fontWeight = 'bold';
+                        errorMsg.style.marginTop = '10px';
+                        errorMsg.textContent = 'Please select an option before continuing.';
+                        const navigationDiv = currentPageElement.querySelector('.navigation');
+                        navigationDiv.insertBefore(errorMsg, navigationDiv.firstChild);
+                    }
+                    
+                    const scaleContainer = currentPageElement.querySelector('.scale-container');
+                    if (scaleContainer) {
+                        scaleContainer.style.border = '2px solid red';
+                        scaleContainer.style.padding = '6px';
+                    }
+                    
+                    return; 
+                } else {
+                    const errorMsg = currentPageElement.querySelector('.error-message');
+                    if (errorMsg) errorMsg.remove();
+                    
+                    const scaleContainer = currentPageElement.querySelector('.scale-container');
+                    if (scaleContainer) {
+                        scaleContainer.style.border = '';
+                        scaleContainer.style.padding = '8px';
+                    }
+                }
+            }
+            currentPage++;
+            showPage(currentPage);
+        }
+
+window.abortStudy = function() {
+    if (confirm("Are you sure you want to abort the study?")) {
+        // Collect all data that has been entered before aborting
+        const data = {
+            participant_id: participantId,
+            answers: {},
+            map_attention_fails: attentionFails,
+            study_aborted: true,
+            task_version: document.title,
+        };
+
+        const endTime = performance.now();
+        const timeTaken = (endTime - startTime) / 1000;
+        data.map_time = timeTaken;
+
+        allQuestions.forEach((questionObj, index) => {
+            let pageNumber = -1;
+            const questionPages = document.querySelectorAll('.page');
+
+            for (let i = 0; i < questionPages.length; i++) {
+                const page = questionPages[i];
+                const questionElements = page.querySelectorAll('.question');
+
+                if (questionElements.length > 0 && questionElements[0].textContent === questionObj.text) {
+                    const idMatch = page.id.match(/page(\d+)/);
+                    if (idMatch) {
+                        pageNumber = parseInt(idMatch[1], 10);
+                    }
+                    break;
+                }
+            }
+
+            if (pageNumber === -1) return;
+            if (pageNumber > currentPage) return;
+
+            const isAttentionCheck = questionObj.is_attention_check || false;
+            const questionId = isAttentionCheck ? `map_ac${questionObj.id}` : `map_q${questionObj.id}`;
+            const selectedValue = document.querySelector(`input[name="q${pageNumber}"]:checked`)?.value;
+
+            if (selectedValue !== undefined && selectedValue !== null) {
+                if (isAttentionCheck) {
+                    data.answers[questionId] = {
+                        answer: selectedValue,
+                        attention_failed: questionObj.attention_failed || false
+                    };
+                } else {
+                    data.answers[questionId] = selectedValue;
+                }
+            }
+        });
+
+        // Create loading message
+        const loadingMessage = document.createElement('div');
+        loadingMessage.style.position = 'fixed';
+        loadingMessage.style.top = '50%';
+        loadingMessage.style.left = '50%';
+        loadingMessage.style.transform = 'translate(-50%, -50%)';
+        loadingMessage.style.padding = '20px';
+        loadingMessage.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        loadingMessage.style.color = 'white';
+        loadingMessage.style.borderRadius = '10px';
+        loadingMessage.style.zIndex = '9999';
+        loadingMessage.textContent = 'Saving your data before exiting...';
+        document.body.appendChild(loadingMessage);
+
+        // Submit the partial data
+        if (typeof jatos !== 'undefined') {
+            jatos.submitResultData(convertToCSV(data))
+                .then(() => {
+                    loadingMessage.textContent = 'Data saved successfully. Redirecting...';
+
+                    // Redirect to Prolific with completion code
+                    setTimeout(() => {
+                        window.location.href = 'https://app.prolific.com/submissions/complete?cc=C1EW0YXJ';
+                    }, 1500);
+                })
+                .catch((err) => {
+                    loadingMessage.textContent = 'Error saving data. Redirecting anyway...';
+                    setTimeout(() => {
+                        window.location.href = 'https://app.prolific.com/submissions/complete?cc=C1EW0YXJ';
+                    }, 1500);
+                });
+        } else {
+            // If no JATOS available, just show the data
+            loadingMessage.textContent = 'Study aborted (JATOS not available). Data collected:';
+            const dataDisplay = document.createElement('pre');
+            dataDisplay.style.color = 'white';
+            dataDisplay.style.fontSize = '12px';
+            dataDisplay.style.marginTop = '10px';
+            dataDisplay.textContent = convertToCSV(data);
+            loadingMessage.appendChild(dataDisplay);
+        }
+    }
+};
+    </script>
+</body>
+</html>
